@@ -56,27 +56,17 @@ module Qyu
         end
 
         def find_workflow(id)
-          wflow = Workflow.find(id)
+          wflow = Workflow.find_by(id: id)
           deserialize_workflow(wflow)
-        rescue ActiveRecord::RecordNotFound => ex
-          # raise ArcYu::Errors::WorkflowNotFound.new(:id, id, ex)
         end
 
         def find_workflow_by_name(name)
-          wflow = Workflow.find_by!(name: name)
+          wflow = Workflow.find_by(name: name)
           deserialize_workflow(wflow)
-        rescue ActiveRecord::RecordNotFound => ex
-          # raise ArcYu::Errors::WorkflowNotFound.new(:name, name, ex)
         end
 
         def find_task(id)
-          t = nil
-          begin
-            t = Task.find(id)
-          rescue ActiveRecord::RecordNotFound => ex
-            # TODO
-            # raise ArcYu::Errors::TaskNotFound.new(id, ex)
-          end
+          task = Task.find_by(id: id)
           deserialize_task(t)
         end
 
@@ -89,11 +79,13 @@ module Qyu
         end
 
         def find_job(id)
-          j = Job.find(id)
-          wflow = Workflow.find(j.workflow_id)
+          j = Job.find_by(id: id)
+          return if j.nil?
+
+          wflow = Workflow.find_by(id: j.workflow_id)
+          return if wflow.nil?
+
           deserialize_job(j, wflow)
-        rescue ActiveRecord::RecordNotFound => ex
-          # raise ArcYu::Errors::TaskNotFound.new(id, ex)
         end
 
         def select_jobs(limit, offset, order = :asc)
@@ -177,6 +169,8 @@ module Qyu
 
         # t['payload'] = JSON.parse(t['payload'])
         def deserialize_task(task)
+          return if task.nil?
+
           task.as_json
         end
 
@@ -189,6 +183,8 @@ module Qyu
         end
 
         def deserialize_workflow(workflow)
+          return if workflow.nil?
+
           wflow = workflow.as_json
           # wflow['descriptor'] = JSON.parse(wflow['descriptor'])
           wflow

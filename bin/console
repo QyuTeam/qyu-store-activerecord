@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require "bundler/setup"
+require "qyu"
 require "qyu/store/activerecord"
 
 # You can add fixtures and/or initialization code here to make experimenting
@@ -10,5 +11,5 @@ require "qyu/store/activerecord"
 # require "pry"
 # Pry.start
 
-require "irb"
-IRB.start(__FILE__)
+require "pry"
+Pry.start

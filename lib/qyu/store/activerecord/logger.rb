@@ -1,7 +1,10 @@
+require 'logger'
+
 module Qyu
   module Store
     module ActiveRecord
-      VERSION = "0.1.0"
+      class Logger < ::Logger
+      end
     end
   end
 end

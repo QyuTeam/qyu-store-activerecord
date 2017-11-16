@@ -5,13 +5,13 @@ require "qyu/store/activerecord/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "qyu-store-activerecord"
-  spec.version       = Qyu::Store::Activerecord::VERSION
+  spec.version       = Qyu::Store::ActiveRecord::VERSION
   spec.authors       = ["Andrew Kumanyaev"]
   spec.email         = ["me@zzet.org"]
 
-  spec.summary       = %q{TODO: Write a short summary, because RubyGems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = %q{ActiveRecord state store for Qyu https://rubygems.org/gems/qyu}
+  spec.description   = %q{ActiveRecord state store for Qyu https://rubygems.org/gems/qyu}
+  spec.homepage      = "https://github.com/FindHotel/qyu-store-activerecord"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
@@ -32,5 +32,10 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.16"
   spec.add_development_dependency "rake", "~> 10.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "pry", "~> 0.11"
+  spec.add_development_dependency "rspec", "~> 3.5"
+  spec.add_development_dependency 'simplecov'
+  spec.add_development_dependency 'pg'
+
+  spec.add_runtime_dependency 'activerecord', '~> 5.1'
 end

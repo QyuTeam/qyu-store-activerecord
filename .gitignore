@@ -51,3 +51,7 @@ build-iPhoneSimulator/
 
 # rspec failure tracking
 .rspec_status
+
+Dockerfile
+docker-compose.yml
+.env

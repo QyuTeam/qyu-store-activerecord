@@ -1,0 +1,194 @@
+require 'active_record'
+require 'securerandom'
+
+module Qyu
+  module Store
+    module ActiveRecord
+      class Adapter < Qyu::Store::ActiveRecord.interface
+        class Task < ::ActiveRecord::Base; end
+        class Job < ::ActiveRecord::Base; end
+
+        TYPE = :active_record
+
+        class << self
+          def valid_config?(config)
+            ConfigurationValidator.new(config).valid?
+          end
+        end
+
+        def initialize(config)
+          init_client(config)
+        end
+
+        def find_or_persist_task(name, queue_name, payload, job_id, parent_task_id)
+          id = nil
+          transaction do
+            id_payload_combos = Task.where(
+              name: name,
+              queue_name: queue_name,
+              job_id: job_id,
+              parent_task_id: parent_task_id
+            ).pluck(:id, :payload)
+
+            id_payload_combos.each do |t_id, t_payload|
+              if compare_payloads(t_payload, payload)
+                id = t_id
+                break
+              end
+            end
+
+            if id.nil?
+              id = Task.create!(name: name, queue_name: queue_name, payload: payload, job_id: job_id, parent_task_id: parent_task_id).id
+            end
+
+            yield(id)
+          end
+
+          id
+        end
+
+        def persist_job(descriptor, payload)
+          with_connection do
+            Job.create!(payload: payload, descriptor: descriptor).id
+          end
+        end
+
+        def find_task(id)
+          t = nil
+          begin
+            t = Task.find(id)
+          rescue ActiveRecord::RecordNotFound => ex
+            # TODO
+            # raise ArcYu::Errors::TaskNotFound.new(id, ex)
+          end
+          deserialize_task(t)
+        end
+
+        def find_task_ids_by_job_id_and_name(job_id, name)
+          Task.where(job_id: job_id, name: name).pluck(:id)
+        end
+
+        def find_task_ids_by_job_id_name_and_parent_task_ids(job_id, name, parent_task_ids)
+          Task.where(job_id: job_id, name: name, parent_task_id: parent_task_ids).pluck(:id)
+        end
+
+        def find_job(id)
+          j = nil
+          begin
+            j = Job.find(id)
+          rescue ActiveRecord::RecordNotFound => ex
+            # raise ArcYu::Errors::TaskNotFound.new(id, ex)
+          end
+          deserialize_job(j)
+        end
+
+        def select_jobs(limit, offset, order = :asc)
+          Job.order(id: order).limit(limit).offset(offset).as_json
+        end
+
+        def select_tasks_by_job_id(job_id)
+          Task.where(job_id: job_id).as_json
+        end
+
+        def count_jobs
+          Job.count
+        end
+
+        def lock_task!(id, lease_time)
+          Qyu.logger.debug '[LOCK] lock_task!'
+
+          uuid = SecureRandom.uuid
+          Qyu.logger.debug "[LOCK] uuid = #{uuid}"
+
+          locked_until = seconds_after_time(lease_time)
+          Qyu.logger.debug "[LOCK] locked_until = #{locked_until}"
+
+          results = Task.where('id = ? AND (locked_until < now() OR locked_until IS NULL)', id).update(locked_by: uuid, locked_until: locked_until)
+
+          return [nil, nil] if results.empty?
+
+          locked_until = results[0].locked_until
+          Qyu.logger.debug "[LOCK] locked_until from DB = #{locked_until}"
+
+          [uuid, locked_until]
+        end
+
+        def unlock_task!(id, lease_token)
+          results = Task.where(id: id, locked_by: lease_token).update(locked_by: nil, locked_until: nil)
+          !results.empty?
+        end
+
+        def renew_lock_lease(id, lease_time, lease_token)
+          Qyu.logger.debug "renew_lock_lease id = #{id}, lease_time = #{lease_time}, lease_token = #{lease_token}"
+
+          results = with_connection do
+            Task.where('id = ? AND locked_until > now() AND locked_by = ?', id, lease_token).update(locked_until: seconds_after_time(lease_time))
+          end
+
+          Qyu.logger.debug "renew_lock_lease results = #{results}"
+
+          return nil if results.empty?
+
+          results[0].locked_until
+        end
+
+        def update_status(id, status)
+          results = Task.where(id: id).update(status: status)
+          if results.empty? || results[0].status != status
+            # fail ArcYu::Errors::TaskStatusCannotBeUpdatedError.new(id, status)
+          end
+        end
+
+        def with_connection
+          ::ActiveRecord::Base.connection_pool.with_connection do
+            yield
+          end
+        end
+
+        def transaction
+          ::ActiveRecord::Base.transaction do
+            yield
+          end
+        end
+
+        private
+
+        def compare_payloads(payload1, payload2)
+          sort(payload1) == sort(payload2)
+        end
+
+        def sort(payload)
+          payload
+        end
+
+        # t['payload'] = JSON.parse(t['payload'])
+        def deserialize_task(task)
+          task.as_json
+        end
+
+        # j['payload'] = JSON.parse(j['payload'])
+        # j['descriptor'] = JSON.parse(j['descriptor'])
+        def deserialize_job(job)
+          job.as_json
+        end
+
+        def init_client(config)
+          conf = {
+            adapter:  config[:db_type],
+            database: config[:db_name],
+            username: config[:db_user],
+            host:     config[:db_host],
+            port:     config[:db_port]
+          }
+          conf[:password] = config[:db_password] if config[:db_password]
+
+          # ArcYu::StateStore::Migration::ActiveRecordMigration.run(conf)
+        end
+
+        def seconds_after_time(lease_time, start_time = Time.now.utc)
+          start_time + seconds
+        end
+      end
+    end
+  end
+end

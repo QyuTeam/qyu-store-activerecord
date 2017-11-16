@@ -43,10 +43,30 @@ module Qyu
           id
         end
 
-        def persist_job(descriptor, payload)
+        def persist_workflow(name, descriptor)
           with_connection do
-            Job.create!(payload: payload, descriptor: descriptor).id
+            Workflow.create!(name: name, descriptor: descriptor).id
           end
+        end
+
+        def persist_job(workflow, payload)
+          with_connection do
+            Job.create!(payload: payload, workflow_id: workflow.id).id
+          end
+        end
+
+        def find_workflow(id)
+          wflow = Workflow.find(id)
+          deserialize_workflow(wflow)
+        rescue ActiveRecord::RecordNotFound => ex
+          # raise ArcYu::Errors::WorkflowNotFound.new(:id, id, ex)
+        end
+
+        def find_workflow_by_name(name)
+          wflow = Workflow.find_by!(name: name)
+          deserialize_workflow(wflow)
+        rescue ActiveRecord::RecordNotFound => ex
+          # raise ArcYu::Errors::WorkflowNotFound.new(:name, name, ex)
         end
 
         def find_task(id)
@@ -69,17 +89,15 @@ module Qyu
         end
 
         def find_job(id)
-          j = nil
-          begin
-            j = Job.find(id)
-          rescue ActiveRecord::RecordNotFound => ex
-            # raise ArcYu::Errors::TaskNotFound.new(id, ex)
-          end
-          deserialize_job(j)
+          j = Job.find(id)
+          wflow = Workflow.find(j.workflow_id)
+          deserialize_job(j, wflow)
+        rescue ActiveRecord::RecordNotFound => ex
+          # raise ArcYu::Errors::TaskNotFound.new(id, ex)
         end
 
         def select_jobs(limit, offset, order = :asc)
-          Job.order(id: order).limit(limit).offset(offset).as_json
+          Job.includes(:workflow).order(id: order).limit(limit).offset(offset).as_json(include: :workflow)
         end
 
         def select_tasks_by_job_id(job_id)
@@ -164,8 +182,16 @@ module Qyu
 
         # j['payload'] = JSON.parse(j['payload'])
         # j['descriptor'] = JSON.parse(j['descriptor'])
-        def deserialize_job(job)
-          job.as_json
+        def deserialize_job(job, workflow)
+          j = job.as_json
+          j['workflow'] = deserialize_workflow(workflow)
+          j
+        end
+
+        def deserialize_workflow(workflow)
+          wflow = workflow.as_json
+          # wflow['descriptor'] = JSON.parse(wflow['descriptor'])
+          wflow
         end
 
         def init_client(config)

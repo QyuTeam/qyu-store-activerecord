@@ -4,9 +4,6 @@ module Qyu
   module Store
     module ActiveRecord
       class Adapter < Qyu::Store::ActiveRecord.interface
-        class Task < ::ActiveRecord::Base; end
-        class Job < ::ActiveRecord::Base; end
-
         TYPE = :active_record
 
         class << self
@@ -181,7 +178,7 @@ module Qyu
           }
           conf[:password] = config[:db_password] if config[:db_password]
 
-          # ArcYu::StateStore::Migration::ActiveRecordMigration.run(conf)
+          Utils.ensure_db_ready(conf)
         end
 
         def seconds_after_time(lease_time, start_time = Time.now.utc)

@@ -140,9 +140,8 @@ module Qyu
 
         def update_status(id, status)
           results = Task.where(id: id).update(status: status)
-          if results.empty? || results[0].status != status
-            # fail ArcYu::Errors::TaskStatusCannotBeUpdatedError.new(id, status)
-          end
+
+          results.any? && results[0].status == status
         end
 
         def with_connection

@@ -214,3 +214,11 @@ module Qyu
     end
   end
 end
+
+if defined?(ArcYu::Config::StateStore)
+  ArcYu::Config::StateStore.register(Qyu::Store::ActiveRecord::Adapter)
+end
+
+if defined?(ArcYu::Factory::StateStore)
+  ArcYu::Factory::StateStore.register(Qyu::Store::ActiveRecord::Adapter)
+end

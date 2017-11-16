@@ -12,6 +12,8 @@ module Qyu
           end
         end
 
+        cattr_reader :db_configuration
+
         def initialize(config)
           init_client(config)
         end
@@ -190,16 +192,17 @@ module Qyu
         end
 
         def init_client(config)
-          conf = {
+          @@db_configuration = {
             adapter:  config[:db_type],
             database: config[:db_name],
             username: config[:db_user],
             host:     config[:db_host],
             port:     config[:db_port]
           }
-          conf[:password] = config[:db_password] if config[:db_password]
 
-          Utils.ensure_db_ready(conf)
+          @@db_configuration[:password] = config[:db_password] if config[:db_password]
+
+          Utils.ensure_db_ready(@@db_configuration)
         end
 
         def seconds_after_time(lease_time, start_time = Time.now.utc)

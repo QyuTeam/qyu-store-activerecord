@@ -5,36 +5,39 @@ require 'uri'
 
 namespace :qyu do
   namespace :db do
-    migrations_path = "#{__dir__}/migrate/"
+    migrations_path = "#{__dir__}/../db/migrate/"
 
-    url = ENV['QYU_DB_URL']
+    db_config = Qyu::Store::ActiveRecord::Adapter.db_configuration
+    db_config ||= begin
+                    url = ENV['QYU_DB_URL']
 
-    if !url.nil?
-      db_url = URI(url)
-      db_type = db_url.scheme == 'postgres' ? 'postgresql' : db_url.scheme
-      db_host = db_url.host
-      db_port = db_url.port
-      db_name = db_url.path[1..-1]
-      db_user = db_url.user
-      db_password = db_url.password
-    else
-      db_type = ENV['QYU_DB_ADAPTER']
-      db_host = ENV['QYU_DB_HOST']
-      db_port = ENV['QYU_DB_PORT']
-      db_name = ENV['QYU_DB_NAME']
-      db_user = ENV['QYU_DB_USERNAME']
-      db_password = ENV['QYU_DB_PASSWORD']
-    end
+                    if !url.nil?
+                      db_url = URI(url)
+                      db_type = db_url.scheme == 'postgres' ? 'postgresql' : db_url.scheme
+                      db_host = db_url.host
+                      db_port = db_url.port
+                      db_name = db_url.path[1..-1]
+                      db_user = db_url.user
+                      db_password = db_url.password
+                    else
+                      db_type = ENV['QYU_DB_ADAPTER']
+                      db_host = ENV['QYU_DB_HOST']
+                      db_port = ENV['QYU_DB_PORT']
+                      db_name = ENV['QYU_DB_NAME']
+                      db_user = ENV['QYU_DB_USERNAME']
+                      db_password = ENV['QYU_DB_PASSWORD']
+                    end
 
-    db_config = {
-      adapter:  db_type,
-      database: db_name,
-      username: db_user,
-      host:     db_host,
-      port:     db_port
-    }
+                    db_config = {
+                      adapter:  db_type,
+                      database: db_name,
+                      username: db_user,
+                      host:     db_host,
+                      port:     db_port
+                    }
 
-    db_config[:password] = db_password if db_password
+                    db_config[:password] = db_password if db_password
+                  end
 
     desc 'Create the database'
     task :create do

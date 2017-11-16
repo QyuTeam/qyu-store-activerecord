@@ -2,6 +2,11 @@
 
 class CreateInitialModels < ActiveRecord::Migration[5.0]
   def change
+    create_table :workflows do |t|
+      t.string :name, null: false, unique: true
+      t.jsonb :descriptor, null: false
+    end
+
     create_table :jobs do |t|
       t.jsonb :payload
 
@@ -22,11 +27,6 @@ class CreateInitialModels < ActiveRecord::Migration[5.0]
       t.references :parent_task, table_name: 'tasks', foreign_key: { to_table: 'tasks' }
 
       t.timestamps
-    end
-
-    create_table :workflows do |t|
-      t.string :name, null: false, unique: true
-      t.jsonb :descriptor, null: false
     end
   end
 end

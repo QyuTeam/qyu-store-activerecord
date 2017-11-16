@@ -1,9 +1,5 @@
-RSpec.describe Qyu::Store::Activerecord do
+RSpec.describe Qyu::Store::ActiveRecord do
   it "has a version number" do
-    expect(Qyu::Store::Activerecord::VERSION).not_to be nil
-  end
-
-  it "does something useful" do
-    expect(false).to eq(true)
+    expect(Qyu::Store::ActiveRecord::VERSION).not_to be nil
   end
 end

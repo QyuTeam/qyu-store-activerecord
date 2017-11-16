@@ -1,4 +1,3 @@
-require 'active_record'
 require 'securerandom'
 
 module Qyu

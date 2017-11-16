@@ -41,7 +41,7 @@ namespace :qyu do
       ActiveRecord::Base.establish_connection(db_config.merge(database: 'postgres'))
       ActiveRecord::Base.connection.create_database(db_config[:database])
 
-      puts 'Database created.'
+      puts 'Qyu Database created.'
     end
 
     desc 'Migrate the database'
@@ -51,7 +51,14 @@ namespace :qyu do
 
       Rake::Task['qyu:db:structure'].invoke
 
-      puts 'ArcYu database migrated.'
+      puts 'Qyu database migrated.'
+    end
+
+    desc 'Setup the database'
+    task :setup do
+      Rake::Task['arc_yu:db:create'].invoke
+      Rake::Task['arc_yu:db:migrate'].invoke
+      puts 'Qyu database set up.'
     end
 
     desc 'Migrate the database w/o updating the schema'
@@ -59,7 +66,7 @@ namespace :qyu do
       ActiveRecord::Base.establish_connection(db_config)
       ActiveRecord::Migrator.migrate(migrations_path)
 
-      puts 'ArcYu database migrated.'
+      puts 'Qyu database migrated.'
     end
 
     desc 'Rollback the database'
@@ -69,7 +76,7 @@ namespace :qyu do
 
       Rake::Task['qyu:db:structure'].invoke
 
-      puts 'Migration reverted.'
+      puts 'Qyu migration reverted.'
     end
 
     desc 'Drop the database'
@@ -77,7 +84,7 @@ namespace :qyu do
       ActiveRecord::Base.establish_connection(db_config.merge(database: 'postgres'))
       ActiveRecord::Base.connection.drop_database(db_config[:database])
 
-      puts 'Database deleted.'
+      puts 'Qyu database deleted.'
     end
 
     desc 'Reset the database'
@@ -114,7 +121,7 @@ namespace :qyu do
           EOF
         end
 
-        puts "Migration #{path} created"
+        puts "Qyu migration #{path} created"
         abort # needed stop other tasks
       end
     end

@@ -10,6 +10,7 @@ require "qyu/store/activerecord"
 
 require 'pry'
 require 'shoulda-matchers'
+require 'factory_bot'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -22,8 +23,13 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
+  config.include FactoryBot::Syntax::Methods
   config.include(Shoulda::Matchers::ActiveModel, type: :model)
   config.include(Shoulda::Matchers::ActiveRecord, type: :model)
+
+  config.before(:suite) do
+    FactoryBot.find_definitions
+  end
 
   config.before(:each) do
     # ignore_puts
@@ -71,7 +77,8 @@ def active_record_config
 end
 
 def purge_db
-  Qyu::Store::ActiveRecord::Workflow.delete_all
+  Qyu::Store::ActiveRecord::Task.where.not(parent_task_id: nil).order(parent_task_id: :desc).each(&:delete)
   Qyu::Store::ActiveRecord::Task.delete_all
   Qyu::Store::ActiveRecord::Job.delete_all
+  Qyu::Store::ActiveRecord::Workflow.delete_all
 end

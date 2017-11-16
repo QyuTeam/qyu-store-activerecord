@@ -14,7 +14,7 @@ module Qyu
 
       class << self
         def interface
-          defined?(ArcYu::StateStore::Base) ? ArcYu::StateStore::Base : Object
+          defined?(Qyu::Store::Base) ? Qyu::Store::Base : Object
         end
       end
     end

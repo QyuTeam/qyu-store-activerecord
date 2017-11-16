@@ -69,7 +69,7 @@ module Qyu
 
         def find_task(id)
           task = Task.find_by(id: id)
-          deserialize_task(t)
+          deserialize_task(task)
         end
 
         def find_task_ids_by_job_id_and_name(job_id, name)
@@ -205,7 +205,7 @@ module Qyu
           Utils.ensure_db_ready(@@db_configuration)
         end
 
-        def seconds_after_time(lease_time, start_time = Time.now.utc)
+        def seconds_after_time(seconds, start_time = Time.now.utc)
           start_time + seconds
         end
       end
@@ -213,10 +213,5 @@ module Qyu
   end
 end
 
-if defined?(ArcYu::Config::StateStore)
-  ArcYu::Config::StateStore.register(Qyu::Store::ActiveRecord::Adapter)
-end
-
-if defined?(ArcYu::Factory::StateStore)
-  ArcYu::Factory::StateStore.register(Qyu::Store::ActiveRecord::Adapter)
-end
+Qyu::Config::StoreConfig.register(Qyu::Store::ActiveRecord::Adapter) if defined?(Qyu::Config::StoreConfig)
+Qyu::Factory::StoreFactory.register(Qyu::Store::ActiveRecord::Adapter) if defined?(Qyu::Factory::StoreFactory)

@@ -7,6 +7,8 @@ class CreateInitialModels < ActiveRecord::Migration[5.0]
       t.jsonb :descriptor, null: false
     end
 
+    add_index :workflows, :name, unique: true, name: 'workflows_name_unique_index'
+
     create_table :jobs do |t|
       t.jsonb :payload
 

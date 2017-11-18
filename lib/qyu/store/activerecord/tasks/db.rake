@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_record'
+require 'qyu/store/activerecord'
 require 'uri'
 
 namespace :qyu do

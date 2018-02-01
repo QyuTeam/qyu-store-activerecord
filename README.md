@@ -45,7 +45,7 @@ Qyu.configure(
     db_user: database_user,
     db_password: database_password,
     lease_period: 60
-},
+  },
   # optional Defaults to STDOUT
   logger: Logger.new(STDOUT)
 )

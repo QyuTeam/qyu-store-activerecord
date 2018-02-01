@@ -27,6 +27,9 @@ Or install it yourself as:
 
 To start using Qyu; you need a queue configuration and a state store configuration. Here's an example:
 ```ruby
+require 'qyu'
+require 'qyu/store/activerecord'
+
 Qyu.configure(
   queue: {
     type: :memory

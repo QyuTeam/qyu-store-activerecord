@@ -2,6 +2,7 @@
 
 require 'qyu/store/activerecord'
 require 'uri'
+require 'cgi'
 
 namespace :qyu do
   namespace :db do
@@ -13,12 +14,15 @@ namespace :qyu do
 
                     if !url.nil?
                       db_url = URI(url)
+                      db_params = CGI::parse(db_url.query.to_s)
+
                       db_type = db_url.scheme == 'postgres' ? 'postgresql' : db_url.scheme
                       db_host = db_url.host
                       db_port = db_url.port
                       db_name = db_url.path[1..-1]
                       db_user = db_url.user
                       db_password = db_url.password
+                      db_pool = db_params['pool'].first
                     else
                       db_type = ENV['QYU_DB_ADAPTER']
                       db_host = ENV['QYU_DB_HOST']
@@ -26,6 +30,7 @@ namespace :qyu do
                       db_name = ENV['QYU_DB_NAME']
                       db_user = ENV['QYU_DB_USERNAME']
                       db_password = ENV['QYU_DB_PASSWORD']
+                      db_pool = ENV['QYU_DB_POOL']
                     end
 
                     db_config = {
@@ -33,7 +38,8 @@ namespace :qyu do
                       database: db_name,
                       username: db_user,
                       host:     db_host,
-                      port:     db_port
+                      port:     db_port,
+                      pool:     db_pool
                     }
 
                     db_config[:password] = db_password if db_password

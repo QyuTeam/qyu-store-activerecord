@@ -5,7 +5,6 @@ require 'simplecov'
 
 SimpleCov.start
 
-require 'qyu'
 require "qyu/store/activerecord"
 
 require 'pry'

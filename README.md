@@ -1,4 +1,4 @@
-# Qyu::Store::Activerecord
+# Qyu::Store::ActiveRecord
 
 [![Gem Version](https://img.shields.io/gem/v/qyu-store-activerecord.svg)](https://rubygems.org/gems/qyu-store-activerecord)
 [![Build Status](https://travis-ci.org/FindHotel/qyu-store-activerecord.svg)](https://travis-ci.org/FindHotel/qyu-store-activerecord)
@@ -68,4 +68,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the Qyu::Store::Activerecord project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/FindHotel/qyu-store-activerecord/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Qyu::Store::ActiveRecord project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/FindHotel/qyu-store-activerecord/blob/master/CODE_OF_CONDUCT.md).

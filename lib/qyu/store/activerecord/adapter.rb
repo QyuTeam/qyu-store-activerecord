@@ -197,7 +197,8 @@ module Qyu
             database: config[:db_name],
             username: config[:db_user],
             host:     config[:db_host],
-            port:     config[:db_port]
+            port:     config[:db_port],
+            pool:     config.fetch(:db_pool) { 5 }
           }
 
           @@db_configuration[:password] = config[:db_password] if config[:db_password]

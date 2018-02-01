@@ -1,4 +1,5 @@
 require 'securerandom'
+require_relative '../activerecord'
 
 module Qyu
   module Store

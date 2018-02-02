@@ -1,5 +1,4 @@
 require 'securerandom'
-require_relative '../activerecord'
 
 module Qyu
   module Store
@@ -19,6 +18,65 @@ module Qyu
           init_client(config)
         end
 
+        ## Workflow
+        def persist_workflow(name, descriptor)
+          with_connection do
+            Workflow.create!(name: name, descriptor: descriptor).id
+          end
+        end
+
+        def find_workflow(id)
+          wflow = Workflow.find_by(id: id)
+          deserialize_workflow(wflow)
+        end
+
+        def find_workflow_by_name(name)
+          wflow = Workflow.find_by(name: name)
+          deserialize_workflow(wflow)
+        end
+
+        def delete_workflow(id)
+          Workflow.destroy(id)
+        end
+
+        def delete_workflow_by_name(name)
+          Workflow.where(name: name).destroy_all
+        end
+
+        ## Job
+        def persist_job(workflow, payload)
+          with_connection do
+            Job.create!(payload: payload, workflow_id: workflow.id).id
+          end
+        end
+
+        def find_job(id)
+          j = Job.find_by(id: id)
+          return if j.nil?
+
+          wflow = Workflow.find_by(id: j.workflow_id)
+          return if wflow.nil?
+
+          deserialize_job(j, wflow)
+        end
+
+        def select_jobs(limit, offset, order = :asc)
+          Job.includes(:workflow).order(id: order).limit(limit).offset(offset).as_json(include: :workflow)
+        end
+
+        def count_jobs
+          Job.count
+        end
+
+        def delete_job(id)
+          Job.destroy(id)
+        end
+
+        def clear_completed_jobs
+          Job.joins(:tasks).where(tasks: { status: 'completed' }).destroy_all
+        end
+
+        ## Task
         def find_or_persist_task(name, queue_name, payload, job_id, parent_task_id)
           id = nil
           transaction do
@@ -46,36 +104,6 @@ module Qyu
           id
         end
 
-        def persist_workflow(name, descriptor)
-          with_connection do
-            Workflow.create!(name: name, descriptor: descriptor).id
-          end
-        end
-
-        def persist_job(workflow, payload)
-          with_connection do
-            Job.create!(payload: payload, workflow_id: workflow.id).id
-          end
-        end
-
-        def find_workflow(id)
-          wflow = Workflow.find_by(id: id)
-          deserialize_workflow(wflow)
-        end
-
-        def find_workflow_by_name(name)
-          wflow = Workflow.find_by(name: name)
-          deserialize_workflow(wflow)
-        end
-
-        def delete_workflow(id)
-          Workflow.where(id: id).destroy_all
-        end
-
-        def delete_workflow_by_name(name)
-          Workflow.where(name: name).destroy_all
-        end
-
         def find_task(id)
           task = Task.find_by(id: id)
           deserialize_task(task)
@@ -89,26 +117,16 @@ module Qyu
           Task.where(job_id: job_id, name: name, parent_task_id: parent_task_ids).pluck(:id)
         end
 
-        def find_job(id)
-          j = Job.find_by(id: id)
-          return if j.nil?
-
-          wflow = Workflow.find_by(id: j.workflow_id)
-          return if wflow.nil?
-
-          deserialize_job(j, wflow)
-        end
-
-        def select_jobs(limit, offset, order = :asc)
-          Job.includes(:workflow).order(id: order).limit(limit).offset(offset).as_json(include: :workflow)
+        def task_status_counts(job_id)
+          counts = Task.where(job_id: job_id).group(:name, :status).count
+          counts.each_with_object({}) do |(k, v), obj|
+            obj[k[0]] ||= Hash.new(0)
+            obj[k[0]][k[1]] = v
+          end
         end
 
         def select_tasks_by_job_id(job_id)
           Task.where(job_id: job_id).as_json
-        end
-
-        def count_jobs
-          Job.count
         end
 
         def lock_task!(id, lease_time)

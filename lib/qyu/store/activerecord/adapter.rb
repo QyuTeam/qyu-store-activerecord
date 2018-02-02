@@ -68,6 +68,14 @@ module Qyu
           deserialize_workflow(wflow)
         end
 
+        def delete_workflow(id)
+          Workflow.where(id: id).destroy_all
+        end
+
+        def delete_workflow_by_name(name)
+          Workflow.where(name: name).destroy_all
+        end
+
         def find_task(id)
           task = Task.find_by(id: id)
           deserialize_task(task)

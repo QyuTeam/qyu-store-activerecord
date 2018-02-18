@@ -19,7 +19,7 @@ module Qyu
             Rake::Task['qyu:db:migrate_without_schema_update'].invoke
             # :nocov:
           rescue ::ActiveRecord::ConcurrentMigrationError
-            ArcYu.logger.info 'Concurrent Qyu database migration running. Skipping...'
+            Qyu.logger.info 'Concurrent Qyu database migration running. Skipping...'
             # :nocov:
           end
         end
